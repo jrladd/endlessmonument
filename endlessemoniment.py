@@ -143,11 +143,14 @@ def reply_to_tweets():
 
 
 
-def get_diurnal(t):
+def get_diurnal(current_time):
 	diurnal_day_in_seconds=24*60*60
-	if int(((current_day_from_march-1)*(diurnal_day_in_seconds/365))/60)==int(t/60):
+	poem_time = int(((current_day_from_march-1)*(diurnal_day_in_seconds/365))/60)
+	print("Poem Time for Today:", poem_time)
+	if poem_time==current_time:
 		new_tweet="%s #diurnal" % longlines[current_day_from_march-1]
 		tapi.update_status(new_tweet)
+		print("Tweeted!")
 
 def get_sidereal(t):
 	sidereal_day_in_seconds=23*60*60+56*60+4.0916
@@ -171,7 +174,7 @@ while True:
 	ct=d.datetime.now()
 	days_in_a_month=[31,28,31,30,31,30,31,31,30,31,30,31]
 	current_day=sum(days_in_a_month[0:ct.month-1])+ct.day
-	current_time=ct.hour*60*60+ct.minute*60
+	current_time=ct.hour*60+ct.minute
 	print("Day:", current_day)
 	print("Time:", current_time)
 
