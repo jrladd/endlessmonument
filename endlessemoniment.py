@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import tweepy, time, sys, re
+import time, sys, re
 import datetime as d
 from skyfield import api
 from itertools import chain
@@ -10,6 +10,7 @@ import zipcodes as zc
 from secrets import *
 from geopy.geocoders import ArcGIS
 from timezonefinder import TimezoneFinder
+from twython import Twython
 
 # Load necessary Skyfield files
 ts = api.load.timescale()
@@ -28,7 +29,7 @@ def get_diurnal(current_time):
 	print("Poem Time for Today:", poem_time)
 	if poem_time==current_time:
 		new_tweet="%s #diurnal" % longlines[current_day_from_march-1]
-		tapi.update_status(new_tweet)
+		tapi.update_status(status=new_tweet)
 		print("Tweeted!")
 
 def get_sidereal(current_time):
@@ -40,7 +41,7 @@ def get_sidereal(current_time):
 	poem_time = int(((current_day_from_march-1)*(sidereal_day_in_seconds/360))/60)
 	if current_day_from_march < 360 and poem_time == current_time:
 		new_tweet="%s #sidereal" % longlines[current_day_from_march-1]
-		tapi.update_status(new_tweet)
+		tapi.update_status(status=new_tweet)
 
 def get_shortline(current_time, full_poem):
 	"""
@@ -53,7 +54,7 @@ def get_shortline(current_time, full_poem):
 	for line in shortlines:
 		preceding_line = full_poem[full_poem.index(line)+1]
 		if poem_time == current_time and preceding_line==todays_longline:
-			tapi.update_status(line)
+			tapi.update_status(status=line)
 
 def parse_poem_todaynight(lines):
 	"""
@@ -160,24 +161,25 @@ def reply_to_tweets(sunlines, nightlines):
 	and reply back with the appropriate line of the poem.
 	"""
 	if len(ids) > 0: # Check only for mentions that haven't previously been dealt with
-		m=tapi.mentions_timeline(max(ids))
+		m=tapi.get_mentions_timeline(since_id=max(ids))
 	else:
-		m = tapi.mentions_timeline()
+		m = tapi.get_mentions_timeline()
 	for s in m: # For each mention
-		tweet_id=s.id
-		username=s.author.screen_name
-		location_input=s.text
+		tweet_id=s['id']
+		username=s['user']['screen_name']
+		location_input=s['text']
 		if not hasattr(s, 'retweeted_status') or not hasattr(s, 'quoted_status'): # Make sure tweet is not a retweet or quote tweet
 			line_for_tweet, place, time = retrieveline(location_input, sunlines, nightlines) # Based on the status, get a line and some other information
 			new_reply='@{u} Here you go! The line for {place} at {time} is: "{l}"'.format(u=username, place=place, time=time, l=line_for_tweet.strip()) # Construct a tweet with that information
-			tapi.update_status(new_reply, tweet_id) # Reply to the original tweet
+			tapi.update_status(status=new_reply, in_reply_to_status_id=tweet_id) # Reply to the original tweet
 			ids.append(tweet_id) # Record id for original tweet
 
 if __name__ == "__main__":
 	# Open up a Twitter API using secret keys
-	auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-	auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
-	tapi = tweepy.API(auth)
+	#auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+	#auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
+	#tapi = tweepy.API(auth)
+	tapi = Twython(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)
 
 	# Open the full poem
 	filename=open("epithalamion.txt", 'r')
@@ -199,7 +201,7 @@ if __name__ == "__main__":
 	sunlines=poem_daynight[0]
 	nightlines=poem_daynight[1]
 
-	ids = [1113902410978799618] # Start with a known, older id
+	ids = [1168162677593661440] # Start with a known, older id
 	while True:
 		ct=d.datetime.now() # What date/time is it right now?
 		# current_day=ct.timetuple().tm_yday # How many days has it been since January 1st?
