@@ -76,7 +76,7 @@ def get_day_info(location):
 	tf = TimezoneFinder()
 	tz_string = tf.timezone_at(lng=loc.longitude, lat=loc.latitude)
 	timezone = tz.timezone(tz_string)
-	
+
 	# Convert geocode to string format that Skyfield needs
 	if loc.latitude < 0:
 		lat = "{} S".format(loc.latitude)
@@ -205,7 +205,11 @@ if __name__ == "__main__":
 	while True:
 		ct=d.datetime.now() # What date/time is it right now?
 		# current_day=ct.timetuple().tm_yday # How many days has it been since January 1st?
-		current_day_from_march = ct.toordinal() - d.date(ct.year, 3, 1).toordinal() + 1 # How many days has it been since March 1st?
+		if ct.month < 3:
+			true_year = ct.year-1
+		else:
+			true_year = ct.year
+		current_day_from_march = ct.toordinal() - d.date(true_year, 3, 1).toordinal() + 1 # How many days has it been since March 1st?
 		current_time=ct.hour*60+ct.minute # How many minutes has it been since midnight?
 		print("Day if year starts on March 1st:", current_day_from_march)
 		print("Time:", current_time)
