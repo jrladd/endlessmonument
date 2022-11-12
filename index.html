@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+html {
+  font-size: 5vmin;
+  font-family: 'IM Fell English', serif;
+}
+h1 {
+  font-size: .75rem;
+  color: #990000;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  float: left;
+}
+form {
+  font-size: .5rem;
+  float: right;
+  color: #666;
+}
+p {
+  padding: 30vh 0;
+  width: 70%;
+  margin: auto;
+  text-align: center;
+  font-size: 1.5rem;
+  color: #333;
+}
+footer {
+  position:absolute;
+  bottom:0;
+  right:0;
+  font-size: .5rem;
+  color: #888;
+  text-align: right;
+}
+a {
+  color: #990000;
+  text-decoration: none;
+}
+</style>
+</head>
+<body>
+
+<h1>Endless Monument</h1>
+<form id="yearType">
+  <input type="radio" id="diurnal" name="yearType" value="diurnal" checked>
+  <label for="diurnal">Diurnal</label><br>
+  <input type="radio" id="sidereal" name="yearType" value="sidereal">
+  <label for="sidereal">Sidereal</label><br>
+</form>
+<p id="longline">Loading correct line...</p>
+<footer>Loading footer...</footer>
+
+</body>
+<script>
+  
+// Initialize year type
+let typeOfYear = document.querySelector('input[name=yearType]:checked').value;
+
+// URLs for poem segments
+const longlinesURL = 'https://raw.githubusercontent.com/jrladd/endlessmonument/master/longlines.txt'
+const shortlinesURL = 'https://raw.githubusercontent.com/jrladd/endlessmonument/master/shortlines.txt'
+const poemURL = 'https://raw.githubusercontent.com/jrladd/endlessmonument/master/epithalamion.txt'
+
+// Retrieve a file as a Promise
+const getFile = (url) => {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('get', url, true);
+      xhr.onload = function () {
+        var status = xhr.status;
+        if (status == 200) {
+          resolve(xhr.responseText);
+        } else {
+          reject(status);
+        }
+      };
+      xhr.send();
+    });
+}
+
+const getLine = async () => {
+  // Get each poem and split
+  let longlines = await getFile(longlinesURL);
+  longlines = longlines.split('\n');
+  let shortlines = await getFile(shortlinesURL);
+  shortlines = shortlines.split('\n');
+  let poem = await getFile(poemURL);
+  poem = poem.split('\n');
+  // Display yesterday's line unless it's time
+  let line = longlines[indexDaysSinceMarch1-1];
+  let shortline = getShortline(longlines[indexDaysSinceMarch1],shortlines,poem)
+  console.log(`Today's shortline: ${shortline}`)
+  // Check diurnal/sidereal selection
+  if (typeOfYear === 'diurnal') {
+    switchTime = diurnalSwitchTime;
+  } else {
+    switchTime = siderealSwitchTime;
+  }
+  // Shortline should appear 15 mins after switch time
+  let shortlineSwitchTime = switchTime+15
+  // If it's time, display today's line
+  // 15 mins after that, display today's line and the short line, if there is one
+  if (minutesSinceMidnight >= shortlineSwitchTime & shortline !== null) {
+    line = `${longlines[indexDaysSinceMarch1]}<br>${shortline}`
+  } else if (minutesSinceMidnight >= switchTime) {
+    line = longlines[indexDaysSinceMarch1];
+  }
+  // Insert line into HTML
+  document.getElementById("longline").innerHTML = line;
+}
+
+// Check if the next line in the poem is a short line
+const getShortline = (longline,shortlines,poem) => {
+  longlineId = poem.indexOf(longline)
+  nextLine = poem[longlineId+1]
+  if (shortlines.indexOf(nextLine)) {
+    return nextLine;
+  } else {
+    return null;
+  }
+}
+
+const today = new Date(); // Today's date
+// The number of days since March 1 (beginning at 0)
+let indexDaysSinceMarch1 = Math.floor((today - new Date(today.getFullYear(), 2, 1)) /1000/60/60/24)
+// The number of minutes since midnight
+let minutesSinceMidnight = today.getHours()*60 + today.getMinutes()
+// The length of the day in seconds
+let diurnal_day_in_seconds=24*60*60
+let sidereal_day_in_seconds=23*60*60+56*60+4.0916
+// The time of day that the line should switch
+let diurnalSwitchTime=Math.floor((indexDaysSinceMarch1*(diurnal_day_in_seconds/365))/60)
+let siderealSwitchTime=Math.floor((indexDaysSinceMarch1*(diurnal_day_in_seconds/360))/60)
+if (typeOfYear === 'diurnal') {
+  let switchTime = diurnalSwitchTime;
+} else {
+  let switchTime = siderealSwitchTime;
+}
+
+// Print values to console for easy reference
+console.log(`Days since March 1: ${indexDaysSinceMarch1}`);
+console.log(`Minutes since midnight: ${minutesSinceMidnight}`)
+console.log(`Today's diurnal switch time: ${diurnalSwitchTime}`)
+
+// Retrieve proper line(s)
+getLine();
+
+// Event listener for year type radio buttons
+const yearType = () => {
+  typeOfYear = document.querySelector('input[name=yearType]:checked').value;
+  getLine();
+  document.querySelector("footer").innerHTML = `Showing the ${typeOfYear} line of Spenser's Epithalamion for ${today}. <a target='blank' href='https://jrladd.com/endless-monument.html'>Learn more.</a>`;
+}
+
+document.getElementById("yearType").addEventListener('change', yearType);
+
+// Add footer text for time of day
+document.querySelector("footer").innerHTML = `Showing the ${typeOfYear} line of Spenser's Epithalamion for ${today}. <a target='blank' href='https://jrladd.com/endless-monument.html'>Learn more.</a>`;
+</script> 
+</html> 
