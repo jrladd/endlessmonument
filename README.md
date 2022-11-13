@@ -2,7 +2,7 @@
 
 [*Endless Monument*](https://jrladd.com/endlessmonument/) is an experimental poetry project that displays Edmund Spenser's *Epithalamion* one line at a time. It began as a [Twitter bot](https://twitter.com/endlessmonument) in 2014 and has since moved to its own webpage:
 
-[![](images/endlessmonument.png)](https://jrladd.com/endlessmonument/)
+[![](https://jrladd.com/images/endlessmonument.png)](https://jrladd.com/endlessmonument/)
 
 Spenser published the *Epithalamion*---the word is a riff on epithalamium, a wedding poem---to commemorate his second marriage to Elizabeth Boyle on 11 June 1594. He embued the verse with a complex time-scheme that wasn't fully discovered until the 1960s. Here's what he did:
 
