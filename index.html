@@ -128,6 +128,8 @@ const getShortline = (longline,shortlines,poem) => {
 const today = new Date(); // Today's date
 // The number of days since March 1 (beginning at 0)
 let indexDaysSinceMarch1 = Math.floor((today - new Date(today.getFullYear(), 2, 1)) /1000/60/60/24)
+// Handle January and February
+if (today.getMonth() < 2) { indexDaysSinceMarch1 = 365 + indexDaysSinceMarch1; }
 // The number of minutes since midnight
 let minutesSinceMidnight = today.getHours()*60 + today.getMinutes()
 // The length of the day in seconds
